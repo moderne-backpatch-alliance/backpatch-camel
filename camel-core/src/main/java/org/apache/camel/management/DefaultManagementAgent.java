@@ -183,6 +183,13 @@ public class DefaultManagementAgent extends ServiceSupport implements Management
         }
     }
 
+    /**
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. This setter still accepts and stores the value for
+     *     binary compatibility with consumer XML configs, but the value is
+     *     never used to bind an RMI registry.
+     */
+    @Deprecated
     public void setRegistryPort(Integer port) {
         registryPort = port;
     }
@@ -191,6 +198,13 @@ public class DefaultManagementAgent extends ServiceSupport implements Management
         return registryPort;
     }
 
+    /**
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. This setter still accepts and stores the value for
+     *     binary compatibility with consumer XML configs, but the value is
+     *     never used to expose an RMI connector port.
+     */
+    @Deprecated
     public void setConnectorPort(Integer port) {
         connectorPort = port;
     }
@@ -215,6 +229,13 @@ public class DefaultManagementAgent extends ServiceSupport implements Management
         return mBeanObjectDomainName;
     }
 
+    /**
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. This setter still accepts and stores the value for
+     *     binary compatibility with consumer XML configs, but the URL path
+     *     is never used to bind an RMI registry.
+     */
+    @Deprecated
     public void setServiceUrlPath(String url) {
         serviceUrlPath = url;
     }
@@ -223,6 +244,13 @@ public class DefaultManagementAgent extends ServiceSupport implements Management
         return serviceUrlPath;
     }
 
+    /**
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. This setter still accepts and stores the value for
+     *     binary compatibility with consumer XML configs, but setting
+     *     this to {@code true} no longer opens an RMI listener.
+     */
+    @Deprecated
     public void setCreateConnector(Boolean flag) {
         createConnector = flag;
     }
@@ -475,42 +503,23 @@ public class DefaultManagementAgent extends ServiceSupport implements Management
     }
 
     protected void createMBeanServer() {
-        String hostName;
-        boolean canAccessSystemProps = true;
-        try {
-            // we'll do it this way mostly to determine if we should lookup the hostName
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                sm.checkPropertiesAccess();
-            }
-        } catch (SecurityException se) {
-            canAccessSystemProps = false;
-        }
-
-        if (canAccessSystemProps) {
-            try {
-                if (useHostIPAddress) {
-                    hostName = InetAddress.getLocalHost().getHostAddress();
-                } else {
-                    hostName = InetAddressUtil.getLocalHostName();
-                }
-            } catch (UnknownHostException uhe) {
-                LOG.info("Cannot determine localhost name or address. Using default: {}", DEFAULT_REGISTRY_PORT, uhe);
-                hostName = DEFAULT_HOST;
-            }
-        } else {
-            hostName = DEFAULT_HOST;
-        }
-
+        // CVE-2020-11971 (backpatch): the JMX RMI connector path has been
+        // removed unconditionally. Prior 2.x behaviour exposed an
+        // unauthenticated RMI listener when createConnector=true, allowing
+        // remote MBean rebinding. Upstream removed the feature in 3.2.0 via
+        // CAMEL-14811 (apache/camel@b954402272); this backpatch ports that
+        // intent to 2.25.4 while preserving binary compatibility for
+        // setCreateConnector/setRegistryPort/setConnectorPort/
+        // setServiceUrlPath (consumer Spring XML / Karaf blueprint configs
+        // reference these and must continue to class-load).
         server = findOrCreateMBeanServer();
 
-        try {
-            // Create the connector if we need
-            if (createConnector) {
-                createJmxConnector(hostName);
-            }
-        } catch (IOException ioe) {
-            LOG.warn("Could not create and start JMX connector.", ioe);
+        if (createConnector != null && createConnector) {
+            LOG.warn("createConnector=true is no longer honoured (CVE-2020-11971 backpatch);"
+                    + " the JMX RMI connector has been disabled. Consumers requiring"
+                    + " remote JMX should use the JVM's built-in JMX agent via"
+                    + " -Dcom.sun.management.jmxremote.* system properties with"
+                    + " authentication and TLS enabled.");
         }
     }
     
@@ -536,45 +545,17 @@ public class DefaultManagementAgent extends ServiceSupport implements Management
         return MBeanServerFactory.createMBeanServer(mBeanServerDefaultDomain);
     }
 
+    /**
+     * @deprecated As of the CVE-2020-11971 backpatch this method is a
+     *     no-op. Upstream removed the JMX RMI connector path entirely in
+     *     3.2.0 (CAMEL-14811); the backpatch preserves the method signature
+     *     for binary compatibility but does not open an RMI listener under
+     *     any configuration. Consumers requiring remote JMX should use the
+     *     JVM's built-in JMX agent with authentication and TLS enabled.
+     */
+    @Deprecated
     protected void createJmxConnector(String host) throws IOException {
-        StringHelper.notEmpty(serviceUrlPath, "serviceUrlPath");
-        ObjectHelper.notNull(registryPort, "registryPort");
-
-        try {
-            registry = LocateRegistry.createRegistry(registryPort);
-            LOG.debug("Created JMXConnector RMI registry on port {}", registryPort);
-        } catch (RemoteException ex) {
-            // The registry may had been created, we could get the registry instead
-        }
-
-        // must start with leading slash
-        String path = serviceUrlPath.startsWith("/") ? serviceUrlPath : "/" + serviceUrlPath;
-        // Create an RMI connector and start it
-        final JMXServiceURL url;
-        if (connectorPort > 0) {
-            url = new JMXServiceURL("service:jmx:rmi://" + host + ":" + connectorPort + "/jndi/rmi://" + host
-                                    + ":" + registryPort + path);
-        } else {
-            url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + host + ":" + registryPort + path);
-        }
-
-        cs = JMXConnectorServerFactory.newJMXConnectorServer(url, null, server);
-
-        // use async thread for starting the JMX Connector
-        // (no need to use a thread pool or enlist in JMX as this thread is terminated when the JMX connector has been started)
-        String threadName = camelContext.getExecutorServiceManager().resolveThreadName("JMXConnector: " + url);
-        Thread thread = getCamelContext().getExecutorServiceManager().newThread(threadName, new Runnable() {
-            public void run() {
-                try {
-                    LOG.debug("Staring JMX Connector thread to listen at: {}", url);
-                    cs.start();
-                    LOG.info("JMX Connector thread started and listening at: {}", url);
-                } catch (IOException ioe) {
-                    LOG.warn("Could not start JMXConnector thread at: " + url + ". JMX Connector not in use.", ioe);
-                }
-            }
-        });
-        thread.start();
+        LOG.debug("createJmxConnector({}) is a no-op (CVE-2020-11971 backpatch)", host);
     }
 
 }

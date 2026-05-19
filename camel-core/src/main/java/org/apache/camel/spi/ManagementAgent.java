@@ -105,7 +105,11 @@ public interface ManagementAgent extends Service {
      * Sets the port used by {@link java.rmi.registry.LocateRegistry}.
      *
      * @param port the port
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. The value is stored for binary compatibility with
+     *     consumer XML configs but is never used to bind a registry.
      */
+    @Deprecated
     void setRegistryPort(Integer port);
 
     /**
@@ -119,7 +123,11 @@ public interface ManagementAgent extends Service {
      * Sets the port clients must use to connect
      *
      * @param port the port
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. The value is stored for binary compatibility with
+     *     consumer XML configs but is never used.
      */
+    @Deprecated
     void setConnectorPort(Integer port);
 
     /**
@@ -154,7 +162,11 @@ public interface ManagementAgent extends Service {
      * Sets the service url
      *
      * @param url the service url
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. The value is stored for binary compatibility with
+     *     consumer XML configs but is never used.
      */
+    @Deprecated
     void setServiceUrlPath(String url);
 
     /**
@@ -168,7 +180,12 @@ public interface ManagementAgent extends Service {
      * Whether connector should be created, allowing clients to connect remotely
      *
      * @param createConnector <tt>true</tt> to create connector
+     * @deprecated CVE-2020-11971 backpatch: the JMX RMI connector has been
+     *     removed. Setting this to <tt>true</tt> is silently accepted (for
+     *     binary compatibility with consumer XML configs) but no longer
+     *     opens an RMI listener.
      */
+    @Deprecated
     void setCreateConnector(Boolean createConnector);
 
     /**
