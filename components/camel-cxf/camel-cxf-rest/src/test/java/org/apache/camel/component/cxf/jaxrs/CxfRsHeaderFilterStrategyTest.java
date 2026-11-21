@@ -45,4 +45,15 @@ public class CxfRsHeaderFilterStrategyTest {
         assertFalse(filter.applyFilterToCamelHeaders("MyWorld", "just a test", null), "Get a wrong filtered result");
     }
 
+    @Test
+    public void testFilterInboundCamelHeaders() throws Exception {
+        HeaderFilterStrategy filter = new CxfRsHeaderFilterStrategy();
+        assertTrue(filter.applyFilterToExternalHeaders("CamelFoo", "just a test", null), "Get a wrong filtered result");
+        assertTrue(filter.applyFilterToExternalHeaders("camelfoo", "just a test", null), "Get a wrong filtered result");
+        assertTrue(filter.applyFilterToExternalHeaders("org.apache.camel.Foo", "just a test", null),
+                "Get a wrong filtered result");
+
+        assertFalse(filter.applyFilterToExternalHeaders("MyWorld", "just a test", null), "Get a wrong filtered result");
+    }
+
 }
