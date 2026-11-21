@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 3.22.4.1-backpatch-00001
+release: 3.22.4.1-backpatch-00002
 baseline: v3.22.4+backpatch.baseline
 fixes:
   - cve: CVE-2026-47323
@@ -12,12 +12,20 @@ fixes:
       - org.apache.camel:camel-cxf-rest
       - org.apache.camel:camel-cxf-transport
       - org.apache.camel:camel-knative-http
-    note: New in this release; ported onto 3.22.4; fixed at 3.22.4.1-backpatch-00001 (backpatch-camel@245c74b).
+    note: Carried from 3.22.4.1-backpatch-00001; ported onto 3.22.4; fixed at 3.22.4.1-backpatch-00001 (backpatch-camel@245c74b).
+  - cve: CVE-2026-6857
+    upstream_fix_url: https://github.com/apache/camel/commit/ec297f89065b6cfc2682487a96411692d6c296e2
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-6857
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-camel/commit/2814df2
+    basis: adapted
+    artifacts:
+      - org.apache.camel:camel-infinispan
+    note: New in this release; ported onto 3.22.4; fixed at 3.22.4.1-backpatch-00002 (backpatch-camel@2814df2).
 tests:
-  commit: 245c74bcacba5ad4618e940be89d75434e0fbe56
-  command: mvn -B -T1 -pl components/camel-cxf/camel-cxf-rest,components/camel-cxf/camel-cxf-transport,components/camel-knative/camel-knative-http -Dmaven.test.failure.ignore=true clean test
+  commit: 2814df2da329801f28ef18a859e03e0c9c993a1f
+  command: mvn -B -T1 -pl components/camel-cxf/camel-cxf-rest,components/camel-cxf/camel-cxf-transport,components/camel-knative/camel-knative-http,components/camel-infinispan/camel-infinispan,core/camel-core-model,components/camel-mail -Dmaven.test.failure.ignore=true clean test
   runtime: openjdk version 17.0.16 2025-07-15 LTS, Apache Maven 3.9.16
-  report: camel-cxf-rest-3.22.4.1-backpatch-00001-tests.zip
-  report_sha256: 9a7f08117f612d7b38e1250fc839af3f66b8ce0a50011b4fa2d2a262af87bb6e
+  report: camel-infinispan-3.22.4.1-backpatch-00002-tests.zip
+  report_sha256: eba4d36f1d6517e4697a67f57f6c153bbfa3cc86cc5de04d0be1b04880a78770
   result: pass
-  note: "137 tests at the patch commit, 0 of them skipped by the suite, 0 failed, 0 errors. Accepted verifier finding A: 4 files of camel-cxf-rest 3.22.4 Central sources jar are not in the tree (CxfConverterLoader, CxfRsComponentConfigurer, CxfRsEndpointConfigurer and one more): Camel generates them at build time outside src/main/java; no source this port changes."
+  note: "349 tests at the patch commit, 4 of them skipped by the suite, 0 failed, 0 errors. Accepted verifier finding A: 6 generated sources of camel-infinispan 3.22.4 are not under src/main/java (4 checked in under src/generated/java, 2 written by the protostream annotation processor); byte-identical to Central sources jar; no source this port changes."
