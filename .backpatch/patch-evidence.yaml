@@ -1,0 +1,23 @@
+schema: osera-patch-evidence/0.1.0
+producer: moderne
+release: 3.22.4.1-backpatch-00001
+baseline: v3.22.4+backpatch.baseline
+fixes:
+  - cve: CVE-2026-47323
+    upstream_fix_url: https://github.com/apache/camel/commit/b99d78bc7c8c2d29f336618e2a755706240d936c
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-47323
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-camel/commit/245c74b
+    basis: adapted
+    artifacts:
+      - org.apache.camel:camel-cxf-rest
+      - org.apache.camel:camel-cxf-transport
+      - org.apache.camel:camel-knative-http
+    note: New in this release; ported onto 3.22.4; fixed at 3.22.4.1-backpatch-00001 (backpatch-camel@245c74b).
+tests:
+  commit: 245c74bcacba5ad4618e940be89d75434e0fbe56
+  command: mvn -B -T1 -pl components/camel-cxf/camel-cxf-rest,components/camel-cxf/camel-cxf-transport,components/camel-knative/camel-knative-http -Dmaven.test.failure.ignore=true clean test
+  runtime: openjdk version 17.0.16 2025-07-15 LTS, Apache Maven 3.9.16
+  report: camel-cxf-rest-3.22.4.1-backpatch-00001-tests.zip
+  report_sha256: 9a7f08117f612d7b38e1250fc839af3f66b8ce0a50011b4fa2d2a262af87bb6e
+  result: pass
+  note: "137 tests at the patch commit, 0 of them skipped by the suite, 0 failed, 0 errors. Accepted verifier finding A: 4 files of camel-cxf-rest 3.22.4 Central sources jar are not in the tree (CxfConverterLoader, CxfRsComponentConfigurer, CxfRsEndpointConfigurer and one more): Camel generates them at build time outside src/main/java; no source this port changes."
