@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 3.22.4.1-backpatch-00002
+release: 3.22.4.1-backpatch-00003
 baseline: v3.22.4+backpatch.baseline
 fixes:
   - cve: CVE-2026-47323
@@ -20,12 +20,20 @@ fixes:
     basis: adapted
     artifacts:
       - org.apache.camel:camel-infinispan
-    note: New in this release; ported onto 3.22.4; fixed at 3.22.4.1-backpatch-00002 (backpatch-camel@2814df2).
+    note: Carried from 3.22.4.1-backpatch-00002; ported onto 3.22.4; fixed at 3.22.4.1-backpatch-00002 (backpatch-camel@2814df2).
+  - cve: CVE-2026-33454
+    upstream_fix_url: https://github.com/apache/camel/commit/5c20de8f047de725e0b32a874cdb5108c3e46558
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-33454
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-camel/commit/dfbbae3
+    basis: adapted
+    artifacts:
+      - org.apache.camel:camel-mail
+    note: New in this release; ported onto 3.22.4; fixed at 3.22.4.1-backpatch-00003 (backpatch-camel@dfbbae3).
 tests:
-  commit: 2814df2da329801f28ef18a859e03e0c9c993a1f
+  commit: dfbbae33ad83b156858e17262aa4baa1e7a2cd20
   command: mvn -B -T1 -pl components/camel-cxf/camel-cxf-rest,components/camel-cxf/camel-cxf-transport,components/camel-knative/camel-knative-http,components/camel-infinispan/camel-infinispan,core/camel-core-model,components/camel-mail -Dmaven.test.failure.ignore=true clean test
   runtime: openjdk version 17.0.16 2025-07-15 LTS, Apache Maven 3.9.16
-  report: camel-infinispan-3.22.4.1-backpatch-00002-tests.zip
-  report_sha256: eba4d36f1d6517e4697a67f57f6c153bbfa3cc86cc5de04d0be1b04880a78770
+  report: camel-mail-3.22.4.1-backpatch-00003-tests.zip
+  report_sha256: 1318dedd0f77ae9975ad947164e28c42b107834686e62f2ad59e627c1fba53a4
   result: pass
-  note: "349 tests at the patch commit, 4 of them skipped by the suite, 0 failed, 0 errors. Accepted verifier finding A: 6 generated sources of camel-infinispan 3.22.4 are not under src/main/java (4 checked in under src/generated/java, 2 written by the protostream annotation processor); byte-identical to Central sources jar; no source this port changes."
+  note: "352 tests at the patch commit, 4 of them skipped by the suite, 0 failed, 0 errors. Accepted verifier finding A: 5 generated sources of camel-mail 3.22.4 in src/generated/java are not under src/main/java; byte-identical to Central sources jar; no source this port changes."
