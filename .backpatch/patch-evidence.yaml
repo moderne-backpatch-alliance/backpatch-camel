@@ -1,0 +1,28 @@
+schema: osera-patch-evidence/0.1.0
+producer: moderne
+release: 4.0.6.1-backpatch-00001
+baseline: v4.0.6+backpatch.baseline
+fixes:
+  - cve: CVE-2026-46592
+    upstream_fix_url: https://github.com/apache/camel/commit/7240570a05687792c95badfa8d11ed2644117230
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-46592
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-camel/compare/434948ac3438~1...30d537d13a14
+    basis: adapted
+    artifacts:
+      - org.apache.camel:camel-cxf-common
+      - org.apache.camel:camel-cxf-transport
+      - org.apache.camel:camel-cxf-soap
+      - org.apache.camel:camel-cxf-rest
+      - org.apache.camel:camel-cxf-spring-soap
+      - org.apache.camel:camel-cxf-spring-rest
+      - org.apache.camel:camel-endpointdsl
+      - org.apache.camel:camel-catalog
+    note: "New in this release; ported onto 4.0.6; fixed at 4.0.6.1-backpatch-00001 (backpatch-camel@434948ac3438..30d537d13a14). The cxf and cxfrs producers select the operation from the headers `CamelCxfOperationName` and `CamelCxfOperationNamespace`, the new values of `CxfConstants.OPERATION_NAME` and `CxfConstants.OPERATION_NAMESPACE`, and no longer read `operationName` or `operationNamespace`; the consumers set the new names too. If your application sets or reads these headers by their former literal names, or was compiled against the earlier `CxfConstants`, whose values the compiler copies into your classes, the former headers no longer select the operation: a cxf producer logs a WARN once and invokes the `defaultOperationName` operation or the first operation CXF returns, and a cxfrs producer with the proxy client API fails with a `NoSuchMethodException` that names `CamelCxfOperationName`. Use the new names or the constants and recompile; a cxfrs simple binding route that dispatches on `${header.operationName}` must use `${header.CamelCxfOperationName}`, and the endpoint DSL header methods `operationName()` and `operationNamespace()` are now `cxfOperationName()` and `cxfOperationNamespace()`. The former names are filtered and not sent to the service. This release does not include upstream's camel-jms change that drops inbound Camel headers (CAMEL-21221): a JMS message that carries a `CamelCxfOperationName` property can still select the operation of a route from a `jms:` endpoint to a `cxf:` endpoint."
+tests:
+  commit: 30d537d13a146a3326fa4e61fde116e28b6d1b20
+  command: mvn -B -T1 -pl components/camel-cxf/camel-cxf-common,components/camel-cxf/camel-cxf-transport,components/camel-cxf/camel-cxf-soap,components/camel-cxf/camel-cxf-rest,components/camel-cxf/camel-cxf-spring-soap,components/camel-cxf/camel-cxf-spring-rest,dsl/camel-endpointdsl,catalog/camel-catalog -Dmaven.test.failure.ignore=true clean test
+  runtime: openjdk version 17.0.16 2025-07-15 LTS, Apache Maven 3.9.16
+  report: camel-cxf-common-4.0.6.1-backpatch-00001-tests.zip
+  report_sha256: 676088ae0d439d0e18979fc6ccabff457e96fc7ef7a3666f1275e8e5a8ff2f5c
+  result: pass
+  note: 1320 tests at the patch commit, 5 of them skipped by the suite, 0 failed, 0 errors.
